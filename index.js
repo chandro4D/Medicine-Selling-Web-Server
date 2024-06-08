@@ -30,7 +30,18 @@ async function run() {
     // await client.connect();
     const productCollection = client.db("medicineDb").collection("products");
     const cartCollection = client.db("medicineDb").collection("carts");
-    
+    const userCollection = client.db("medicineDb").collection("users");
+    // ------------users related api--------
+    app.post('/users',async(req,res) => {
+      const user = req.body;
+      const query = {email: user.email}
+      const existingUser =await userCollection.findOne(query);
+      if(existingUser){
+        return res.send({message: 'user already exists',insertedId:null})
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    })
     // ------------get all shop products-----------------------
     app.delete('/carts/:id',async(req,res) => {
       const id = req.params.id;
