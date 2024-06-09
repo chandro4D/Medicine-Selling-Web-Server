@@ -169,7 +169,25 @@ async function run() {
     const result = await cartCollection.find(query).toArray();
     res.send(result);
   })
-  
+  // --------------------delete item by admin--------------------
+  app.delete('/shop/:id',async(req,res) => {
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)}
+    const result = await productCollection.deleteOne(query);
+    res.send(result);
+  })  
+  app.post('/shop', async(req,res) => {
+    const item = req.body;
+    const result = await productCollection.insertOne(item);
+    res.send(result);
+  })
+
+  app.get('/shop/:email', async (req, res) => {
+    const email = req.params.email
+    const query = { email : email }
+    const result = await productCollection.find(query).toArray()
+    res.send(result)
+  })
   // ---------------------------------------------------
 
 
