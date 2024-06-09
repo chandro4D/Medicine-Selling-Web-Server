@@ -42,6 +42,10 @@ async function run() {
       const result = await userCollection.insertOne(user);
       res.send(result);
     })
+    app.get('/users',async(req,res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+  })
     // ------------get all shop products-----------------------
     app.delete('/carts/:id',async(req,res) => {
       const id = req.params.id;
