@@ -12,6 +12,16 @@ const port = process.env.PORT || 7000;
 app.use(cors());
 app.use(express.json());
 
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://medicine-selling-21aeb.web.app",
+      // "https://cardoctor-bd.firebaseapp.com",
+    ]
+  })
+);
+
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ethrwxc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -32,17 +42,21 @@ async function run() {
     const productCollection = client.db("medicineDb").collection("products");
     const cartCollection = client.db("medicineDb").collection("carts");
     const userCollection = client.db("medicineDb").collection("users");
+    const paymentCollection = client.db("medicineDb").collection("payments");
     
     
     
     // jwt related api------------
-    app.post('/jwt',async(req,res) => {
-      const user = req.body;
-      const token = jwt.sign(user,process.env.ACCESS_TOKEN_SECRET, {
-       expiresIn:'1h'
-      });
-      res.send({token});
-     })
+    // app.post('/jwt',async(req,res) => {
+    //   const user = req.body;
+    //   const token = jwt.sign(user,process.env.ACCESS_TOKEN_SECRET, {
+    //    expiresIn:'1h'
+    //   });
+    //   res.send({token});
+    //  })
+
+
+    
     // ------------users related api-------------------------------------------
     app.post('/users',async(req,res) => {
       const user = req.body;
@@ -207,6 +221,23 @@ async function run() {
   
     
   });
+
+  // -----------payment related api-----------
+  app.post('/payments',async(req,res) => {
+    const payment = req.body;
+    const paymentResult = await paymentCollection.insertOne(payment);
+// carefully--------------------
+    console.log('payment info',payment);
+    const query = {_id: {
+      $in: payment.cartIds.map(id => new  ObjectId(id))
+    }}
+
+    const deleteResult = await cartCollection.deleteMany(query);
+    res.send(paymentResult)
+
+  })
+
+  
   // ---------------------------------------------------
 
 
