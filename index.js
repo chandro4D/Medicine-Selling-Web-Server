@@ -42,7 +42,11 @@ async function run() {
     const productCollection = client.db("medicineDb").collection("products");
     const cartCollection = client.db("medicineDb").collection("carts");
     const userCollection = client.db("medicineDb").collection("users");
+    
     const paymentCollection = client.db("medicineDb").collection("payments");
+    
+    const sliderCollection = client.db("medicineDb").collection("sliders");
+    const addCollection = client.db("medicineDb").collection("adds");
     
     
     
@@ -55,7 +59,12 @@ async function run() {
     //   res.send({token});
     //  })
 
-
+  //  ---------------Add post---------------------------
+  app.post('/adds', async(req,res) => {
+    const addItem = req.body;
+    const result = await addCollection.insertOne(addItem);
+    res.send(result);
+  })
     
     // ------------users related api-------------------------------------------
     app.post('/users',async(req,res) => {
@@ -235,6 +244,24 @@ async function run() {
     const deleteResult = await cartCollection.deleteMany(query);
     res.send(paymentResult)
 
+  })
+
+  app.get('/payments/:email',async(req,res) => {
+    const query = {email: req.params.email}
+    const result = await paymentCollection.find(query).toArray();
+    res.send(result);
+  })
+  app.get('/payments',async(req,res) => {
+    
+    const result = await paymentCollection.find().toArray();
+    res.send(result);
+  })
+
+  // -----------get slider data--------------
+  app.get('/sliders', async(req,res) => {
+    
+    const result = await sliderCollection.find().toArray();
+    res.send(result);
   })
 
   
