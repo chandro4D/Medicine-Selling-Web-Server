@@ -65,6 +65,14 @@ async function run() {
     const result = await addCollection.insertOne(addItem);
     res.send(result);
   })
+  app.get('/adds',async(req,res) => {
+    const result = await addCollection.find().toArray();
+    res.send(result);
+})
+app.get('/sliders',async(req,res) => {
+  const result = await sliderCollection.find().toArray();
+  res.send(result);
+})
     
     // ------------users related api-------------------------------------------
     app.post('/users',async(req,res) => {
@@ -256,13 +264,79 @@ async function run() {
     const result = await paymentCollection.find().toArray();
     res.send(result);
   })
+  // ------------admin analytics------------
+  app.get('/admin-stats',async(req,res) => {
+    const users = await userCollection.estimatedDocumentCount();
+    const menuItems = await productCollection.estimatedDocumentCount();
+    const orders = await paymentCollection.estimatedDocumentCount(); 
 
-  // -----------get slider data--------------
-  app.get('/sliders', async(req,res) => {
-    
-    const result = await sliderCollection.find().toArray();
+    // const payments = await paymentCollection.find().toArray();
+    // const revenue = payments.reduce((total,payment) => total+payment.price,0);
+
+    const result = await paymentCollection.aggregate([
+      {
+        $group: {
+          _id:null,
+          totalRevenue: {
+            $sum: '$price'
+          }
+        }
+      }
+    ]).toArray();
+    const revenue = result.length > 0? result[0].totalRevenue:0;
+
+    res.send({
+      users,
+      menuItems,
+      orders,
+      revenue,
+
+    })
+  })
+
+
+  app.get('/order-stats',async(req,res) => {
+    const result = await paymentCollection.aggregate([
+      {
+        $unwind: '$menuItemIds'
+      },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'menuItemIds',
+          foreignField: '_id',
+          as: 'menuItems'
+        },
+      },
+      {
+        $unwind: '$menuItems'
+      },
+      {
+        $group: {
+          _id: '$menuItems.category',
+          quantity: {$sum:1},
+          revenue:{ $sum: '$menuItems.price' }
+        }
+        
+      },
+      {
+        $project: {
+          _id: 0,
+          category: '$_id',
+          quantity: '$quantity',
+          revenue: '$revenue'
+        }
+      }
+    ]).toArray();
     res.send(result);
   })
+
+  // -----------get slider data--------------
+  // app.get('/sliders', async(req,res) => {
+    
+  //   const result = await sliderCollection.find().toArray();
+  //   res.send(result);
+  // })
 
   
   // ---------------------------------------------------
