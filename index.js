@@ -73,6 +73,13 @@ app.get('/sliders',async(req,res) => {
   const result = await sliderCollection.find().toArray();
   res.send(result);
 })
+
+app.delete('/sliders/:id',async(req,res) => {
+  const id = req.params.id;
+  const query = {_id: new ObjectId(id)}
+  const result = await sliderCollection.deleteOne(query);
+  res.send(result);
+})
     
     // ------------users related api-------------------------------------------
     app.post('/users',async(req,res) => {
